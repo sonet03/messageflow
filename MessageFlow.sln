@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageFlow", "MessageFlow\MessageFlow.csproj", "{EBF5FC3A-B49A-4C48-9B64-7E8E6B4C6FAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageFlow.App", "MessageFlow.App\MessageFlow.App.csproj", "{264EA73C-CFF7-4F98-A45E-04003FC4352D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageFlow.Kafka", "MessageFlow.Kafka\MessageFlow.Kafka.csproj", "{4D0D61E5-F51B-40F9-BAE4-69003E178B7F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EBF5FC3A-B49A-4C48-9B64-7E8E6B4C6FAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBF5FC3A-B49A-4C48-9B64-7E8E6B4C6FAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBF5FC3A-B49A-4C48-9B64-7E8E6B4C6FAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBF5FC3A-B49A-4C48-9B64-7E8E6B4C6FAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{264EA73C-CFF7-4F98-A45E-04003FC4352D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{264EA73C-CFF7-4F98-A45E-04003FC4352D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{264EA73C-CFF7-4F98-A45E-04003FC4352D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{264EA73C-CFF7-4F98-A45E-04003FC4352D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D0D61E5-F51B-40F9-BAE4-69003E178B7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D0D61E5-F51B-40F9-BAE4-69003E178B7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D0D61E5-F51B-40F9-BAE4-69003E178B7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D0D61E5-F51B-40F9-BAE4-69003E178B7F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
