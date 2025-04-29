@@ -3,8 +3,8 @@ using Confluent.Kafka;
 
 namespace MessageFlow.Kafka.Strategies
 {
-    public interface IProcessingStrategy
+    public interface IProcessingStrategy<in TMessage>
     {
-        public Task Execute(ConsumeResult<string, string> consumeResult);
+        public Task DispatchAsync(TMessage consumeResult);
     }
 }

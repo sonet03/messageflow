@@ -3,7 +3,7 @@ using Confluent.Kafka;
 
 namespace MessageFlow.Kafka.Strategies
 {
-    public class ConcurrentProcessingStrategy : IProcessingStrategy
+    public class ConcurrentProcessingStrategy<TMessage> : IProcessingStrategy<TMessage>
     {
         private readonly int _maxConcurrency;
 
@@ -12,7 +12,7 @@ namespace MessageFlow.Kafka.Strategies
             _maxConcurrency = maxConcurrency;
         }
 
-        public Task Execute(ConsumeResult<string, string> consumeResult)
+        public Task DispatchAsync(TMessage message)
         {
             return Task.CompletedTask;
         }

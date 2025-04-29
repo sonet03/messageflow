@@ -6,7 +6,7 @@ using Confluent.Kafka;
 
 namespace MessageFlow.Kafka.Strategies
 {
-    public class BatchProcessingStrategy : IProcessingStrategy
+    public class BatchProcessingStrategy<TMessage> : IProcessingStrategy<TMessage>
     {
         private readonly int _batchSize;
         private readonly int _batchTimeoutMs;
@@ -17,7 +17,7 @@ namespace MessageFlow.Kafka.Strategies
             _batchTimeoutMs = batchTimeoutMs;
         }
 
-        public Task Execute(ConsumeResult<string, string> consumeResult)
+        public Task DispatchAsync(TMessage message)
         {
             
             return Task.CompletedTask;

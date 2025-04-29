@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,89 +10,69 @@ using Microsoft.Extensions.Logging;
 
 namespace MessageFlow.Kafka
 {
-    public class Consumer : IDisposable
+    public class KafkaMessageListener<TMessage> : IMessageListener<TMessage>, IDisposable
     {
-        protected readonly IConsumer<string, string> _consumer;
-        protected readonly string _topic;
-        private readonly ILogger<Consumer> _logger;
-        protected bool _isRunning;
-        private readonly IProcessingStrategy _processingStrategy;
+        private readonly IConsumer<string, string> _consumer;
+        private readonly Func<string, TMessage> _deserializer;
+        
+        private readonly ConcurrentBag<IProcessingStrategy<TMessage>> _subscribers = new ConcurrentBag<IProcessingStrategy<TMessage>>();
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly Task _listenerTask;
+        
+        private readonly ILogger<KafkaMessageListener<TMessage>> _logger;
 
-        protected Consumer(string bootstrapServers, string groupId, string topic, ILoggerFactory loggerFactory,
-            IProcessingStrategy? processingStrategy = null, Dictionary<string, string>? config = null)
+        protected KafkaMessageListener(ConsumerConfig consumerConfig, Func<string, TMessage> deserializer, ILogger<KafkaMessageListener<TMessage>> logger)
         {
-            _topic = topic;
-            _logger = loggerFactory.CreateLogger<Consumer>();
-            _processingStrategy = processingStrategy ?? new SequentialProcessingStrategy();
-
-            var consumerConfig = new ConsumerConfig
-            {
-                BootstrapServers = bootstrapServers,
-                GroupId = groupId,
-                AutoOffsetReset = AutoOffsetReset.Earliest,
-                EnableAutoCommit = false
-            };
-
-            if (config != null)
-            {
-                foreach (var item in config)
-                {
-                    consumerConfig.Set(item.Key, item.Value);
-                }
-            }
+            _deserializer = deserializer;
+            _logger = logger;
 
             _consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
-            _consumer.Subscribe(_topic);
+            _consumer.Subscribe(GetTopicName());
+            _listenerTask = Task.Run(Listen);
         }
 
-        public async Task StartConsumingAsync(Func<string, string, Task> messageHandler, CancellationToken cancellationToken = default)
+        private string GetTopicName()
         {
-            await StartConsumingInternal(messageHandler, cancellationToken);
+            return typeof(TMessage).Name;
         }
 
-        private async Task StartConsumingInternal(Func<string, string, Task> messageHandler, CancellationToken cancellationToken)
+        public void Subscribe(Func<TMessage, Task> handle)
         {
-            _isRunning = true;
+            _subscribers.Add(new SequentialProcessingStrategy<TMessage>(handle));
+        }
 
-            try
+        private async Task Listen()
+        {
+            while (!_cts.Token.IsCancellationRequested)
             {
-                while (_isRunning && !cancellationToken.IsCancellationRequested)
+                try
                 {
-                    try
-                    {
-                        var consumeResult = _consumer.Consume(cancellationToken);
+                    var consumeResult = _consumer.Consume(_cts.Token);
 
-                        if (consumeResult?.Message?.Value == null)
-                            continue;
-
-                        await _processingStrategy.Execute(consumeResult);
-
-                        _consumer.Commit(consumeResult);
-                    }
-                    catch (ConsumeException ex)
+                    var message = _deserializer(consumeResult.Message.Value);
+                    foreach (var subscriber in _subscribers)
                     {
-                        _logger.LogError(ex,"Error consuming message");
+                        await subscriber.DispatchAsync(message);
                     }
-                    catch (OperationCanceledException)
-                    {
-                        break;
-                    }
+
+                    _consumer.Commit(consumeResult);
+                }
+                catch (ConsumeException ex)
+                {
+                    _logger.LogError(ex,"Error consuming message");
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
                 }
             }
-            finally
-            {
-                _consumer.Close();
-            }
-        }
-
-        public void Stop()
-        {
-            _isRunning = false;
         }
 
         public void Dispose()
         {
-            _consumer?.Dispose();
+            _cts.Cancel();
+            _consumer.Close();
+            _consumer.Dispose();
         }
     }
 }

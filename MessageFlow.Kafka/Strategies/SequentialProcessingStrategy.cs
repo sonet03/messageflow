@@ -2,15 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Confluent.Kafka;
 
 namespace MessageFlow.Kafka.Strategies
 {
-    public class SequentialProcessingStrategy : IProcessingStrategy
+    public class SequentialProcessingStrategy<TMessage> : IProcessingStrategy<TMessage>
     {
-        public Task Execute(ConsumeResult<string, string> consumeResult)
+        private readonly ActionBlock<TMessage> _runBlock;
+
+        public SequentialProcessingStrategy(Func<TMessage, Task> handle)
         {
-            return Task.CompletedTask;
+            _runBlock = new ActionBlock<TMessage>(handle, new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = 1,
+                BoundedCapacity = 100 // TODO: make configurable
+            });
+        }
+
+        public Task DispatchAsync(TMessage message)
+        {
+            return _runBlock.SendAsync(message);
         }
     }
 } 
