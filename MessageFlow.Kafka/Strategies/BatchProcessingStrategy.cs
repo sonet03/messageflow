@@ -2,24 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Confluent.Kafka;
 
 namespace MessageFlow.Kafka.Strategies
 {
     public class BatchProcessingStrategy<TMessage> : IProcessingStrategy<TMessage>
     {
-        private readonly int _batchSize;
-        private readonly int _batchTimeoutMs;
-
-        public BatchProcessingStrategy(int batchSize = 100, int batchTimeoutMs = 1000)
+        public Task DispatchAsync(MessageEnvelope<TMessage> message)
         {
-            _batchSize = batchSize;
-            _batchTimeoutMs = batchTimeoutMs;
-        }
-
-        public Task DispatchAsync(TMessage message)
-        {
-            
             return Task.CompletedTask;
         }
     }
