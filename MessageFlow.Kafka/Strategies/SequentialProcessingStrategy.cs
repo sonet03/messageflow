@@ -9,15 +9,25 @@ namespace MessageFlow.Kafka.Strategies
 {
     public class SequentialProcessingStrategy<TMessage> : IProcessingStrategy<TMessage>
     {
-        private readonly ActionBlock<MessageEnvelope<TMessage>> _runBlock;
+        private readonly TransformBlock<MessageEnvelope<TMessage>, MessageEnvelope<TMessage>> _runBlock;
 
-        public SequentialProcessingStrategy(Func<TMessage, Task> handle)
+        public SequentialProcessingStrategy(Func<TMessage, Task> handle, Action<TopicPartitionOffset> onCompleted)
         {
-            _runBlock = new ActionBlock<MessageEnvelope<TMessage>>(m => handle(m.Payload), new ExecutionDataflowBlockOptions
+            var options = new ExecutionDataflowBlockOptions
             {
                 MaxDegreeOfParallelism = 1,
                 BoundedCapacity = 100 // TODO: make configurable
-            });
+            };
+
+            _runBlock = new TransformBlock<MessageEnvelope<TMessage>, MessageEnvelope<TMessage>>(async m =>
+            {
+                await handle(m.Payload);
+                return m;
+            }, options);
+            
+            var completedBlock = new ActionBlock<MessageEnvelope<TMessage>>(m => onCompleted(m.TopicPartitionOffset), options);
+            
+            _runBlock.LinkTo(completedBlock);
         }
 
         public Task DispatchAsync(MessageEnvelope<TMessage> message)

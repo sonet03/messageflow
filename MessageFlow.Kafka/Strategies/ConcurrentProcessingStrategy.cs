@@ -1,54 +1,60 @@
 using System;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Confluent.Kafka;
 
 namespace MessageFlow.Kafka.Strategies
 {
     public class ConcurrentProcessingStrategy<TMessage> : IProcessingStrategy<TMessage>
     {
-        private readonly ActionBlock<MessageEnvelope<TMessage>>[] _partitionedBlocks;
+        private readonly TransformBlock<MessageEnvelope<TMessage>, MessageEnvelope<TMessage>>[] _partitionedBlocks;
         private readonly TransformBlock<MessageEnvelope<TMessage>, MessageEnvelope<TMessage>> _runBlock;
 
-        public ConcurrentProcessingStrategy(Func<TMessage, Task> handle, int maxConcurrency = 5)
+        public ConcurrentProcessingStrategy(Func<TMessage, Task> handle, Action<TopicPartitionOffset> onCompleted, int maxConcurrency = 5)
         {
-            /*_runBlock = new TransformBlock<MessageEnvelope<TMessage>, MessageEnvelope<TMessage>>(RouteToPartition, new ExecutionDataflowBlockOptions
+            _runBlock = new TransformBlock<MessageEnvelope<TMessage>, MessageEnvelope<TMessage>>(RouteToPartition, new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = maxConcurrency,
+                BoundedCapacity = 100,
+                EnsureOrdered = true
+            });
+            
+            var completedBlock = new ActionBlock<MessageEnvelope<TMessage>>(m => onCompleted(m.TopicPartitionOffset), new ExecutionDataflowBlockOptions
             {
                 MaxDegreeOfParallelism = maxConcurrency,
                 BoundedCapacity = 100
-            });*/
-            _partitionedBlocks = new ActionBlock<MessageEnvelope<TMessage>>[maxConcurrency];
+            });
+            
+            _partitionedBlocks = new TransformBlock<MessageEnvelope<TMessage>, MessageEnvelope<TMessage>>[maxConcurrency];
             
             for (var i = 0; i < maxConcurrency; i++)
             {
-                _partitionedBlocks[i] = new ActionBlock<MessageEnvelope<TMessage>>(
-                    m => handle(m.Payload),
+                _partitionedBlocks[i] = new TransformBlock<MessageEnvelope<TMessage>, MessageEnvelope<TMessage>>(
+                    async m =>
+                    {
+                        await handle(m.Payload);
+                        return m;
+                    },
                     new ExecutionDataflowBlockOptions
                     {
                         MaxDegreeOfParallelism = 1,
                         BoundedCapacity = 100
                     });
 
-                // _runBlock.LinkTo(_partitionedBlocks[i], m => Math.Abs(m.Key.GetHashCode()) % maxConcurrency == i);
+                var index = i;
+                _runBlock.LinkTo(_partitionedBlocks[i], m => Math.Abs(m.Key.GetHashCode()) % maxConcurrency == index);
+                _partitionedBlocks[i].LinkTo(completedBlock);
             }
         }
 
-        /*
-        private async Task<MessageEnvelope<TMessage>> RouteToPartition(MessageEnvelope<TMessage> message)
+        private Task<MessageEnvelope<TMessage>> RouteToPartition(MessageEnvelope<TMessage> message)
         {
-            var index = Math.Abs(message.Key.GetHashCode()) % _partitionedBlocks.Length; // TODO: Chose better partition algorithm
-            return message;
-        }
-        */
-
-        private Task RouteToPartition(MessageEnvelope<TMessage> message)
-        {
-            var index = Math.Abs(message.Key.GetHashCode()) % _partitionedBlocks.Length; // TODO: Chose better partition algorithm
-            return _partitionedBlocks[index].SendAsync(message);
+            return Task.FromResult(message);
         }
 
         public Task DispatchAsync(MessageEnvelope<TMessage> message)
         {
-            return RouteToPartition(message);
+            return _runBlock.SendAsync(message);
         }
     }
 } 

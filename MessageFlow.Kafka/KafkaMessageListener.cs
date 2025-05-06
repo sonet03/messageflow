@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
 using System.Text;
 using Confluent.Kafka;
 using MessageFlow.Kafka.Strategies;
@@ -16,9 +15,13 @@ namespace MessageFlow.Kafka
         private readonly IConsumer<string, byte[]> _consumer;
         private readonly Func<byte[], TMessage> _deserializer;
         
-        private readonly ConcurrentBag<IProcessingStrategy<TMessage>> _subscribers = new ConcurrentBag<IProcessingStrategy<TMessage>>();
+        //private readonly ConcurrentBag<IProcessingStrategy<TMessage>> _subscribers = new ConcurrentBag<IProcessingStrategy<TMessage>>();
+        private IProcessingStrategy<TMessage> _processingStrategy;
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
         private readonly Task _listenerTask;
+
+        private readonly ConcurrentDictionary<TopicPartition, OffsetCommitCoordinator> _coordinators =
+            new ConcurrentDictionary<TopicPartition, OffsetCommitCoordinator>();
         
         private readonly ILogger<KafkaMessageListener<TMessage>> _logger;
 
@@ -27,7 +30,11 @@ namespace MessageFlow.Kafka
             _deserializer = deserializer;
             _logger = logger;
 
-            _consumer = new ConsumerBuilder<string, byte[]>(consumerConfig).Build();
+            _consumer = new ConsumerBuilder<string, byte[]>(consumerConfig)
+                .SetPartitionsAssignedHandler(OnPartitionsAssigned)
+                .SetPartitionsRevokedHandler(OnPartitionsRevoked)
+                .Build();
+            
             _consumer.Subscribe(GetTopicName());
             _listenerTask = Task.Run(Listen);
         }
@@ -39,7 +46,7 @@ namespace MessageFlow.Kafka
 
         public void Subscribe(Func<TMessage, Task> handle)
         {
-            _subscribers.Add(new SequentialProcessingStrategy<TMessage>(handle));
+            _processingStrategy = new SequentialProcessingStrategy<TMessage>(handle, OnCompleted);
         }
 
         private async Task Listen()
@@ -51,13 +58,11 @@ namespace MessageFlow.Kafka
                     var consumeResult = _consumer.Consume(_cts.Token);
 
                     var message = _deserializer(consumeResult.Message.Value);
-                    var messageEnvelope = new MessageEnvelope<TMessage>(consumeResult.Message.Key, message, GetHeaders(consumeResult.Message.Headers));
-                    foreach (var subscriber in _subscribers)
-                    {
-                        await subscriber.DispatchAsync(messageEnvelope);
-                    }
-
-                    _consumer.Commit(consumeResult);
+                    var messageEnvelope = new MessageEnvelope<TMessage>(consumeResult.Message.Key,
+                        consumeResult.TopicPartitionOffset, message,
+                        GetHeaders(consumeResult.Message.Headers));
+                    
+                    await _processingStrategy.DispatchAsync(messageEnvelope);
                 }
                 catch (ConsumeException ex)
                 {
@@ -96,6 +101,32 @@ namespace MessageFlow.Kafka
             _cts.Cancel();
             _consumer.Close();
             _consumer.Dispose();
+        }
+
+        private void OnCompleted(TopicPartitionOffset offset)
+        {
+            _coordinators[offset.TopicPartition].Acknowledge(offset);
+        }
+
+        private void OnPartitionsAssigned(IConsumer<string, byte[]> consumer, List<TopicPartition> partitions)
+        {
+            foreach (var tp in partitions)
+            {
+                long startingOffset = consumer.Position(tp);
+
+                _coordinators[tp] = new OffsetCommitCoordinator(
+                    minOffset: startingOffset,
+                    commitAction: nextOffset => consumer.Commit(new[] { new TopicPartitionOffset(tp, new Offset(nextOffset)) })
+                );
+            }
+        }
+
+        private void OnPartitionsRevoked(IConsumer<string, byte[]> consumer, List<TopicPartitionOffset> partitions)
+        {
+            foreach (var tp in partitions)
+            {
+                _coordinators.TryRemove(tp.TopicPartition, out _);
+            }
         }
     }
 }
