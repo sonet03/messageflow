@@ -8,15 +8,13 @@ namespace MessageFlow.Kafka
     public class KafkaMessagePublisher<TMessage> : IMessagePublisher<TMessage>, IDisposable
     {
         private readonly string _topic;
-        private readonly Func<TMessage, byte[]> _serializer;
         private readonly ILogger<KafkaMessagePublisher<TMessage>> _logger;
-        private readonly IProducer<string, byte[]> _producer;
+        private readonly IProducer<string, TMessage> _producer;
         
-        public KafkaMessagePublisher(ProducerConfig producerConfig, string topic, Func<TMessage, byte[]> serializer, ILogger<KafkaMessagePublisher<TMessage>> logger)
+        public KafkaMessagePublisher(ProducerConfig producerConfig, string topic, ISerializer<TMessage> serializer, ILogger<KafkaMessagePublisher<TMessage>> logger)
         {
-            _producer = new ProducerBuilder<string, byte[]>(producerConfig).Build();
+            _producer = new ProducerBuilder<string, TMessage>(producerConfig).SetValueSerializer(serializer).Build();
             _topic = topic;
-            _serializer = serializer;
             _logger = logger;
         }
         
@@ -26,7 +24,7 @@ namespace MessageFlow.Kafka
             {
                 var result =
                     await _producer.ProduceAsync(_topic,
-                        new Message<string, byte[]> { Key = key, Value = _serializer(message) });
+                        new Message<string, TMessage> { Key = key, Value = message });
             }
             catch (Exception ex)
             {

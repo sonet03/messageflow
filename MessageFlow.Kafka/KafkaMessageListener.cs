@@ -12,8 +12,7 @@ namespace MessageFlow.Kafka
 {
     public class KafkaMessageListener<TMessage> : IMessageListener<TMessage>, IDisposable
     {
-        private readonly IConsumer<string, byte[]> _consumer;
-        private readonly Func<byte[], TMessage> _deserializer;
+        private readonly IConsumer<string, TMessage> _consumer;
         
         //private readonly ConcurrentBag<IProcessingStrategy<TMessage>> _subscribers = new ConcurrentBag<IProcessingStrategy<TMessage>>();
         private IProcessingStrategy<TMessage> _processingStrategy;
@@ -25,14 +24,14 @@ namespace MessageFlow.Kafka
         
         private readonly ILogger<KafkaMessageListener<TMessage>> _logger;
 
-        protected KafkaMessageListener(ConsumerConfig consumerConfig, Func<byte[], TMessage> deserializer, ILogger<KafkaMessageListener<TMessage>> logger)
+        protected KafkaMessageListener(ConsumerConfig consumerConfig, IDeserializer<TMessage> deserializer, ILogger<KafkaMessageListener<TMessage>> logger)
         {
-            _deserializer = deserializer;
             _logger = logger;
 
-            _consumer = new ConsumerBuilder<string, byte[]>(consumerConfig)
+            _consumer = new ConsumerBuilder<string, TMessage>(consumerConfig)
                 .SetPartitionsAssignedHandler(OnPartitionsAssigned)
                 .SetPartitionsRevokedHandler(OnPartitionsRevoked)
+                .SetValueDeserializer(deserializer)
                 .Build();
             
             _consumer.Subscribe(GetTopicName());
@@ -57,9 +56,8 @@ namespace MessageFlow.Kafka
                 {
                     var consumeResult = _consumer.Consume(_cts.Token);
 
-                    var message = _deserializer(consumeResult.Message.Value);
                     var messageEnvelope = new MessageEnvelope<TMessage>(consumeResult.Message.Key,
-                        consumeResult.TopicPartitionOffset, message,
+                        consumeResult.TopicPartitionOffset, consumeResult.Message.Value,
                         GetHeaders(consumeResult.Message.Headers));
                     
                     await _processingStrategy.DispatchAsync(messageEnvelope);
@@ -108,7 +106,7 @@ namespace MessageFlow.Kafka
             _coordinators[offset.TopicPartition].Acknowledge(offset);
         }
 
-        private void OnPartitionsAssigned(IConsumer<string, byte[]> consumer, List<TopicPartition> partitions)
+        private void OnPartitionsAssigned(IConsumer<string, TMessage> consumer, List<TopicPartition> partitions)
         {
             foreach (var tp in partitions)
             {
@@ -121,7 +119,7 @@ namespace MessageFlow.Kafka
             }
         }
 
-        private void OnPartitionsRevoked(IConsumer<string, byte[]> consumer, List<TopicPartitionOffset> partitions)
+        private void OnPartitionsRevoked(IConsumer<string, TMessage> consumer, List<TopicPartitionOffset> partitions)
         {
             foreach (var tp in partitions)
             {
