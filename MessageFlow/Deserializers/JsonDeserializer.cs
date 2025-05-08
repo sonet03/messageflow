@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Confluent.Kafka;
 
-namespace MessageFlow
+namespace MessageFlow.Deserializers
 {
     public class JsonDeserializer<T> : IDeserializer<T>
     {
@@ -33,7 +33,7 @@ namespace MessageFlow
             }
             catch (Exception ex)
             {
-                throw new SerializationException($"Error deserializing JSON to {typeof(T).Name}: {ex.Message}", ex);
+                throw new SerializationException($"Error deserializing {typeof(T).Name}: {ex.Message}", ex);
             }
         }
     }
