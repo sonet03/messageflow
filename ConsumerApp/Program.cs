@@ -9,7 +9,7 @@ var config = new ConsumerConfig
 {
     BootstrapServers = "kafka:9092",
     GroupId = "my-consumer-group",
-    AutoOffsetReset = AutoOffsetReset.Latest,
+    AutoOffsetReset = AutoOffsetReset.Earliest,
     EnableAutoCommit = false
 };
 var now = DateTimeOffset.UtcNow;
