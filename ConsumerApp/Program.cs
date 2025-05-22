@@ -29,8 +29,6 @@ var listener = new KafkaMessageListener<OrderMessage>(config,
 var stopwatch = Stopwatch.StartNew();
 long processed = 0;
 long orders = 0;
-var totalMessages = 4000;
-
 var firstTimestamp = DateTimeOffset.UtcNow;
 
 listener.Subscribe(async message =>
@@ -40,7 +38,7 @@ listener.Subscribe(async message =>
 
     Interlocked.Increment(ref processed);
     
-    if (message.OrderId == (totalMessages -1).ToString())
+    if (message.OrderId is "999" or "9999" or "99999")
     {
         Interlocked.Increment(ref orders);
     }
