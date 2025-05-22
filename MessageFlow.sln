@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageFlow.App", "MessageF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageFlow.Kafka", "MessageFlow.Kafka\MessageFlow.Kafka.csproj", "{4D0D61E5-F51B-40F9-BAE4-69003E178B7F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsumerApp", "ConsumerApp\ConsumerApp.csproj", "{2FF7347F-9D81-4C45-A421-62843BEDB012}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProducerApp", "ProducerApp\ProducerApp.csproj", "{5F476ECC-B89C-44D3-A656-FB9C018E344B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,13 @@ Global
 		{4D0D61E5-F51B-40F9-BAE4-69003E178B7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D0D61E5-F51B-40F9-BAE4-69003E178B7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D0D61E5-F51B-40F9-BAE4-69003E178B7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FF7347F-9D81-4C45-A421-62843BEDB012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FF7347F-9D81-4C45-A421-62843BEDB012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FF7347F-9D81-4C45-A421-62843BEDB012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FF7347F-9D81-4C45-A421-62843BEDB012}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F476ECC-B89C-44D3-A656-FB9C018E344B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F476ECC-B89C-44D3-A656-FB9C018E344B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F476ECC-B89C-44D3-A656-FB9C018E344B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F476ECC-B89C-44D3-A656-FB9C018E344B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
