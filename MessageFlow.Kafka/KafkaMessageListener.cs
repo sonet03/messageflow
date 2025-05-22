@@ -60,7 +60,16 @@ namespace MessageFlow.Kafka
                     _processingStrategy = new BatchProcessingStrategy<TMessage>(
                         async messages =>
                         {
-                            foreach (var m in messages) await handle(m.Payload);
+                            try
+                            {
+                                var messageEnvelopes = messages.OrderBy(m => m.Payload!.ToString()).ToArray();
+                                await handle(messageEnvelopes.First().Payload);
+                                await handle(messageEnvelopes.Last().Payload);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e);
+                            }
                         },
                         OnCompleted);
                     break;
