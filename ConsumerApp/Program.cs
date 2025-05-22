@@ -1,4 +1,5 @@
-﻿using Confluent.Kafka;
+﻿using System.Diagnostics;
+using Confluent.Kafka;
 using MessageFlow.Kafka;
 using MessageFlow.Kafka.Deserializers;
 using Microsoft.Extensions.Logging;
@@ -25,10 +26,32 @@ var listener = new KafkaMessageListener<OrderMessage>(config,
     "kafka-topic-test"
 );
 
+var stopwatch = Stopwatch.StartNew();
+long processed = 0;
+var totalMessages = 4000;
+
+var firstTimestamp = DateTimeOffset.UtcNow;
+var lastTimestamp = DateTimeOffset.MinValue;
+
 listener.Subscribe(async message =>
 {
     await Task.Delay(300);
     Console.WriteLine($"{DateTimeOffset.UtcNow:HH:mm:ss.fff} | {message.UserId} | {message.OrderId}");
+
+    Interlocked.Increment(ref processed);
+
+    if (processed == totalMessages)
+    {
+        var strategy = Environment.GetEnvironmentVariable("PROCESSING_STRATEGY")?.ToUpperInvariant();
+        stopwatch.Stop();
+        var totalTime = stopwatch.Elapsed;
+        Console.WriteLine("--- DONE ---");
+        Console.WriteLine($"Strategy: {strategy ?? "SEQUENTIAL"}");
+        Console.WriteLine($"Start: {firstTimestamp:HH:mm:ss.fff}");
+        Console.WriteLine($"End:   {DateTimeOffset.UtcNow:HH:mm:ss.fff}");
+        Console.WriteLine($"Elapsed: {totalTime.TotalSeconds:F2} seconds");
+        Console.WriteLine($"Throughput: {processed / totalTime.TotalSeconds:F2} msg/sec");
+    }
 });
 
 Console.CancelKeyPress += (_, e) =>
