@@ -6,7 +6,8 @@ using SharedLibrary;
 
 var config = new ProducerConfig
 {
-    BootstrapServers = "kafka:9092"
+    BootstrapServers = "kafka:9092",
+    Partitioner = Partitioner.Murmur2
 };
 
 var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
