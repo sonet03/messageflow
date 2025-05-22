@@ -13,18 +13,18 @@ var config = new ConsumerConfig
 };
 
 var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-var logger = loggerFactory.CreateLogger<KafkaMessageListener<TestMessage>>();
+var logger = loggerFactory.CreateLogger<KafkaMessageListener<OrderMessage>>();
 
-var listener = new KafkaMessageListener<TestMessage>(config,
-    new JsonDeserializer<TestMessage>(),
+var listener = new KafkaMessageListener<OrderMessage>(config,
+    new JsonDeserializer<OrderMessage>(),
     logger,
     "kafka-topic-test"
 );
 
 listener.Subscribe(async message =>
 {
-    Console.WriteLine($"[{Environment.GetEnvironmentVariable("CONSUMER_ID")}] Received: {message.Content}");
-    await Task.Delay(Random.Shared.Next(300, 500));
+    await Task.Delay(Random.Shared.Next(300, 1000));
+    Console.WriteLine($"[{Environment.GetEnvironmentVariable("CONSUMER_ID")}] Processed: {message}. TimeStamp {DateTime.UtcNow}");
 });
 
 Console.CancelKeyPress += (_, e) =>

@@ -10,19 +10,34 @@ var config = new ProducerConfig
 };
 
 var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-var logger = loggerFactory.CreateLogger<KafkaMessagePublisher<TestMessage>>();
+var logger = loggerFactory.CreateLogger<KafkaMessagePublisher<OrderMessage>>();
 
-var publisher = new KafkaMessagePublisher<TestMessage>(
+var publisher = new KafkaMessagePublisher<OrderMessage>(
     config,
     topic: "kafka-topic-test",
-    serializer: new JsonSerializer<TestMessage>(),
+    serializer: new JsonSerializer<OrderMessage>(),
     logger
 );
 
-for (var i = 0; i < 10; i++)
+OrderMessage GenerateOrderMessage(string userId)
 {
-    await publisher.PublishAsync(i.ToString(), new TestMessage { Content = $"Hello {i}" });
-    Console.WriteLine($"Published message {i}");
+    return new OrderMessage(
+        OrderId: Guid.NewGuid().ToString(),
+        UserId: userId,
+        ProductId: $"product_{Random.Shared.Next(1, 100)}",
+        Quantity: Random.Shared.Next(1, 10),
+        Price: Math.Round((decimal)(Random.Shared.NextDouble() * 100), 2),
+        Timestamp: DateTime.UtcNow
+    );
+}
+
+var totalMessages = int.TryParse(Environment.GetEnvironmentVariable("TOTAL_MESSAGES"), out var n) ? n : 1000;
+for (var i = 0; i < totalMessages; i++)
+{
+    var userId = $"user_{Random.Shared.Next(1, 10)}";
+    var order = GenerateOrderMessage(userId);
+    await publisher.PublishAsync(userId, order);
+    Console.WriteLine($"Published message {order.OrderId} for User {userId}");
     await Task.Delay(100);
 }
 

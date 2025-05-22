@@ -45,8 +45,28 @@ namespace MessageFlow.Kafka
 
         public void Subscribe(Func<TMessage, Task> handle)
         {
-            _processingStrategy = new SequentialProcessingStrategy<TMessage>(handle, OnCompleted);
+            var strategy = Environment.GetEnvironmentVariable("PROCESSING_STRATEGY")?.ToUpperInvariant();
+
+            switch (strategy)
+            {
+                case "CONCURRENT":
+                    _processingStrategy = new ConcurrentProcessingStrategy<TMessage>(handle, OnCompleted);
+                    break;
+                case "COMPACTION":
+                    _processingStrategy = new CompactionProcessingStrategy<TMessage>(handle, OnCompleted);
+                    break;
+                case "BATCH":
+                    _processingStrategy = new BatchProcessingStrategy<TMessage>(
+                        async messages => { foreach (var m in messages) await handle(m.Payload); },
+                        OnCompleted);
+                    break;
+                case "SEQUENTIAL":
+                default:
+                    _processingStrategy = new SequentialProcessingStrategy<TMessage>(handle, OnCompleted);
+                    break;
+            }
         }
+
 
         private async Task Listen()
         {
@@ -108,6 +128,8 @@ namespace MessageFlow.Kafka
 
         private void OnPartitionsAssigned(IConsumer<string, TMessage> consumer, List<TopicPartition> partitions)
         {
+            _logger.LogInformation("Partitions assigned: {Partitions}", string.Join(", ", partitions));
+            
             foreach (var tp in partitions)
             {
                 long startingOffset = consumer.Position(tp);
@@ -121,6 +143,8 @@ namespace MessageFlow.Kafka
 
         private void OnPartitionsRevoked(IConsumer<string, TMessage> consumer, List<TopicPartitionOffset> partitions)
         {
+            _logger.LogInformation("Partitions revoked: {Partitions}", string.Join(", ", partitions));
+            
             foreach (var tp in partitions)
             {
                 _coordinators.TryRemove(tp.TopicPartition, out _);
