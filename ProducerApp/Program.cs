@@ -1,8 +1,8 @@
 ﻿using Confluent.Kafka;
 using MessageFlow.Kafka;
-using MessageFlow.Serializers;
+using MessageFlow.Kafka.Serializers;
 using Microsoft.Extensions.Logging;
-using ProducerApp;
+using SharedLibrary;
 
 var config = new ProducerConfig
 {

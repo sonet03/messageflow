@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 using Confluent.Kafka;
 using Google.Protobuf;
 
-namespace MessageFlow.Serializers
+namespace MessageFlow.Kafka.Serializers
 {
     public class ProtobufSerializer<T> : ISerializer<T> where T : IMessage<T>
     {

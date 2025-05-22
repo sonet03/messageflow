@@ -1,8 +1,8 @@
 ﻿using Confluent.Kafka;
-using MessageFlow.Deserializers;
 using MessageFlow.Kafka;
+using MessageFlow.Kafka.Deserializers;
 using Microsoft.Extensions.Logging;
-using ProducerApp;
+using SharedLibrary;
 
 var config = new ConsumerConfig
 {

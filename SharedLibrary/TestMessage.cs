@@ -1,4 +1,4 @@
-namespace ProducerApp;
+namespace SharedLibrary;
 
 public class TestMessage
 {

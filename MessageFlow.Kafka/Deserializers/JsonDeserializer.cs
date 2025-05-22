@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Confluent.Kafka;
 
-namespace MessageFlow.Deserializers
+namespace MessageFlow.Kafka.Deserializers
 {
     public class JsonDeserializer<T> : IDeserializer<T>
     {
