@@ -5,11 +5,9 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["ProducerApp/ProducerApp.csproj", "ProducerApp/"]
-COPY ["MessageFlow.Kafka/MessageFlow.Kafka.csproj", "MessageFlow.Kafka/"]
-COPY ["MessageFlow/MessageFlow.csproj", "MessageFlow/"]
-RUN dotnet restore "ProducerApp/ProducerApp.csproj"
 COPY . .
+
+RUN dotnet restore "ProducerApp/ProducerApp.csproj"
 WORKDIR "/src/ProducerApp"
 RUN dotnet build "./ProducerApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
