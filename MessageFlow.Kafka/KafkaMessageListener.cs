@@ -24,7 +24,7 @@ namespace MessageFlow.Kafka
         
         private readonly ILogger<KafkaMessageListener<TMessage>> _logger;
 
-        protected KafkaMessageListener(ConsumerConfig consumerConfig, IDeserializer<TMessage> deserializer, ILogger<KafkaMessageListener<TMessage>> logger)
+        public KafkaMessageListener(ConsumerConfig consumerConfig, IDeserializer<TMessage> deserializer, ILogger<KafkaMessageListener<TMessage>> logger)
         {
             _logger = logger;
 

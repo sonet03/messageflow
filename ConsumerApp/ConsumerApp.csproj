@@ -5,7 +5,14 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\MessageFlow.Kafka\MessageFlow.Kafka.csproj" />
@@ -15,13 +22,6 @@
     <ItemGroup>
       <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
       <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.5" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-        <DependentUpon>Dockerfile</DependentUpon>
-      </Content>
     </ItemGroup>
 
 </Project>
