@@ -34,10 +34,30 @@ OrderMessage GenerateOrderMessage(string userId, int orderId)
 
 var totalMessages = int.TryParse(Environment.GetEnvironmentVariable("TOTAL_MESSAGES"), out var n) ? n : 1000;
 var tasks = new List<Task>();
-
-for (int userIndex = 0; userIndex < 16; userIndex++)
+var users = new[]
 {
-    var userId = $"user_{userIndex}";
+    "userkey_13", // i=0 → partition 0
+    "userkey_22", // i=1 → partition 1
+    "userkey_5",  // i=2 → partition 2
+    "userkey_15", // i=3 → partition 3
+    "userkey_10", // i=4 → partition 0
+    "userkey_18", // i=5 → partition 1
+    "userkey_4",  // i=6 → partition 2
+    "userkey_12", // i=7 → partition 3
+    "userkey_9",  // i=8 → partition 0
+    "userkey_17", // i=9 → partition 1
+    "userkey_3",  // i=10 → partition 2
+    "userkey_11", // i=11 → partition 3
+    "userkey_6",  // i=12 → partition 0
+    "userkey_1",  // i=13 → partition 1
+    "userkey_2",  // i=14 → partition 2
+    "userkey_0"   // i=15 → partition 3
+};
+
+
+for (var userIndex = 0; userIndex < 16; userIndex++)
+{
+    var userId = users[userIndex];
     tasks.Add(Task.Run(async () =>
     {
         for (int i = 0; i < totalMessages; i++)
