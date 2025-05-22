@@ -40,7 +40,7 @@ listener.Subscribe(async message =>
 
     Interlocked.Increment(ref processed);
     
-    if (message.OrderId == "999")
+    if (message.OrderId == (totalMessages -1).ToString())
     {
         Interlocked.Increment(ref orders);
     }
