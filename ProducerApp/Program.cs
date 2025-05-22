@@ -34,7 +34,7 @@ OrderMessage GenerateOrderMessage(string userId)
 var totalMessages = int.TryParse(Environment.GetEnvironmentVariable("TOTAL_MESSAGES"), out var n) ? n : 1000;
 for (var i = 0; i < totalMessages; i++)
 {
-    var userId = $"user_{totalMessages % 4}";
+    var userId = $"user_{i % 16}";
     var order = GenerateOrderMessage(userId);
     await publisher.PublishAsync(userId, order);
     Console.WriteLine($"Published message {order.OrderId} for User {userId}");
