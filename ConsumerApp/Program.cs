@@ -23,8 +23,10 @@ var listener = new KafkaMessageListener<OrderMessage>(config,
 
 listener.Subscribe(async message =>
 {
-    await Task.Delay(Random.Shared.Next(300, 1000));
-    Console.WriteLine($"[{Environment.GetEnvironmentVariable("CONSUMER_ID")}] Processed: {message}. TimeStamp {DateTime.UtcNow}");
+    await Task.Delay(300);
+    var now = DateTimeOffset.UtcNow;
+    var formatted = now.ToString("HH:mm:ss.fff");
+    Console.WriteLine($"{formatted} | {message.UserId} | {message.OrderId}");
 });
 
 Console.CancelKeyPress += (_, e) =>

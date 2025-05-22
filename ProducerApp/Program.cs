@@ -19,10 +19,10 @@ var publisher = new KafkaMessagePublisher<OrderMessage>(
     logger
 );
 
-OrderMessage GenerateOrderMessage(string userId)
+OrderMessage GenerateOrderMessage(string userId, int orderId)
 {
     return new OrderMessage(
-        OrderId: Guid.NewGuid().ToString(),
+        OrderId: orderId.ToString(),
         UserId: userId,
         ProductId: $"product_{Random.Shared.Next(1, 100)}",
         Quantity: Random.Shared.Next(1, 10),
@@ -35,7 +35,7 @@ var totalMessages = int.TryParse(Environment.GetEnvironmentVariable("TOTAL_MESSA
 for (var i = 0; i < totalMessages; i++)
 {
     var userId = $"user_{i % 16}";
-    var order = GenerateOrderMessage(userId);
+    var order = GenerateOrderMessage(userId, i);
     await publisher.PublishAsync(userId, order);
     Console.WriteLine($"Published message {order.OrderId} for User {userId}");
     await Task.Delay(100);
