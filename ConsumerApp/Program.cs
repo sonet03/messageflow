@@ -17,7 +17,8 @@ var logger = loggerFactory.CreateLogger<KafkaMessageListener<TestMessage>>();
 
 var listener = new KafkaMessageListener<TestMessage>(config,
     new JsonDeserializer<TestMessage>(),
-    logger
+    logger,
+    "kafka-topic-test"
 );
 
 listener.Subscribe(async message =>

@@ -24,7 +24,7 @@ namespace MessageFlow.Kafka
         
         private readonly ILogger<KafkaMessageListener<TMessage>> _logger;
 
-        public KafkaMessageListener(ConsumerConfig consumerConfig, IDeserializer<TMessage> deserializer, ILogger<KafkaMessageListener<TMessage>> logger)
+        public KafkaMessageListener(ConsumerConfig consumerConfig, IDeserializer<TMessage> deserializer, ILogger<KafkaMessageListener<TMessage>> logger, string? topic = null)
         {
             _logger = logger;
 
@@ -34,7 +34,7 @@ namespace MessageFlow.Kafka
                 .SetValueDeserializer(deserializer)
                 .Build();
             
-            _consumer.Subscribe(GetTopicName());
+            _consumer.Subscribe(topic ?? GetTopicName());
             _listenerTask = Task.Run(Listen);
         }
 
