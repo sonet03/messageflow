@@ -11,6 +11,10 @@ var config = new ConsumerConfig
     AutoOffsetReset = AutoOffsetReset.Earliest,
     EnableAutoCommit = false
 };
+var now = DateTimeOffset.UtcNow;
+var formatted = now.ToString("HH:mm:ss.fff");
+Console.WriteLine($"{formatted}");
+
 
 var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 var logger = loggerFactory.CreateLogger<KafkaMessageListener<OrderMessage>>();
@@ -24,9 +28,7 @@ var listener = new KafkaMessageListener<OrderMessage>(config,
 listener.Subscribe(async message =>
 {
     await Task.Delay(300);
-    var now = DateTimeOffset.UtcNow;
-    var formatted = now.ToString("HH:mm:ss.fff");
-    Console.WriteLine($"{formatted} | {message.UserId} | {message.OrderId}");
+    Console.WriteLine($"{DateTimeOffset.UtcNow:HH:mm:ss.fff} | {message.UserId} | {message.OrderId}");
 });
 
 Console.CancelKeyPress += (_, e) =>

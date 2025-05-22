@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
@@ -58,7 +59,12 @@ namespace MessageFlow.Kafka
                     break;
                 case "BATCH":
                     _processingStrategy = new BatchProcessingStrategy<TMessage>(
-                        async messages => { foreach (var m in messages) await handle(m.Payload); },
+                        async messages =>
+                        {
+                            var messageEnvelopes = messages as MessageEnvelope<TMessage>[] ?? messages.ToArray();
+                            await handle(messageEnvelopes.First().Payload);
+                            await handle(messageEnvelopes.Last().Payload);
+                        },
                         OnCompleted);
                     break;
                 case "SEQUENTIAL":
