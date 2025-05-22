@@ -35,7 +35,7 @@ var firstTimestamp = DateTimeOffset.UtcNow;
 
 listener.Subscribe(async message =>
 {
-    await Task.Delay(150);
+    await Task.Delay(75);
     Console.WriteLine($"{DateTimeOffset.UtcNow:HH:mm:ss.fff} | {message.UserId} | {message.OrderId}");
 
     Interlocked.Increment(ref processed);
