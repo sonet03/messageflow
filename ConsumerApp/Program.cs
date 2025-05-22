@@ -28,19 +28,24 @@ var listener = new KafkaMessageListener<OrderMessage>(config,
 
 var stopwatch = Stopwatch.StartNew();
 long processed = 0;
+long orders = 0;
 var totalMessages = 4000;
 
 var firstTimestamp = DateTimeOffset.UtcNow;
-var lastTimestamp = DateTimeOffset.MinValue;
 
 listener.Subscribe(async message =>
 {
-    await Task.Delay(300);
+    await Task.Delay(150);
     Console.WriteLine($"{DateTimeOffset.UtcNow:HH:mm:ss.fff} | {message.UserId} | {message.OrderId}");
 
     Interlocked.Increment(ref processed);
+    
+    if (message.OrderId == "999")
+    {
+        Interlocked.Increment(ref orders);
+    }
 
-    if (processed == totalMessages)
+    if (orders != 0 && orders % 4 == 0)
     {
         var strategy = Environment.GetEnvironmentVariable("PROCESSING_STRATEGY")?.ToUpperInvariant();
         stopwatch.Stop();
