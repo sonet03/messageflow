@@ -6,7 +6,7 @@ using SharedLibrary;
 
 var config = new ProducerConfig
 {
-    BootstrapServers = "localhost:9092"
+    BootstrapServers = "kafka:9092"
 };
 
 var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());

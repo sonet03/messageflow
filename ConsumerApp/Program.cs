@@ -6,7 +6,7 @@ using SharedLibrary;
 
 var config = new ConsumerConfig
 {
-    BootstrapServers = "localhost:9092",
+    BootstrapServers = "kafka:9092",
     GroupId = "my-consumer-group",
     AutoOffsetReset = AutoOffsetReset.Earliest,
     EnableAutoCommit = false
