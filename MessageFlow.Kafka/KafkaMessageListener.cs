@@ -46,6 +46,7 @@ namespace MessageFlow.Kafka
         public void Subscribe(Func<TMessage, Task> handle)
         {
             var strategy = Environment.GetEnvironmentVariable("PROCESSING_STRATEGY")?.ToUpperInvariant();
+            _logger.LogInformation($"Strategy: {strategy ?? "SEQUENTIAL"}");
 
             switch (strategy)
             {

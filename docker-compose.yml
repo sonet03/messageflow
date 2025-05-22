@@ -34,6 +34,29 @@ services:
     container_name: consumer2
     environment:
       - CONSUMER_ID=2
+      - PROCESSING_STRATEGY=CONCURRENT
+    networks:
+      - kafka-net
+    depends_on:
+      - kafka
+
+  consumer3:
+    image: kafka-consumer
+    container_name: consumer3
+    environment:
+      - CONSUMER_ID=3
+      - PROCESSING_STRATEGY=BATCH
+    networks:
+      - kafka-net
+    depends_on:
+      - kafka
+
+  consumer4:
+    image: kafka-consumer
+    container_name: consumer4
+    environment:
+      - CONSUMER_ID=4
+      - PROCESSING_STRATEGY=COMPACTION
     networks:
       - kafka-net
     depends_on:
