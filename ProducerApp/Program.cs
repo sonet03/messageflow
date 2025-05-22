@@ -33,13 +33,23 @@ OrderMessage GenerateOrderMessage(string userId, int orderId)
 }
 
 var totalMessages = int.TryParse(Environment.GetEnvironmentVariable("TOTAL_MESSAGES"), out var n) ? n : 1000;
-for (var i = 0; i < totalMessages; i++)
+var tasks = new List<Task>();
+
+for (int userIndex = 0; userIndex < 16; userIndex++)
 {
-    var userId = $"user_{i % 16}";
-    var order = GenerateOrderMessage(userId, i);
-    await publisher.PublishAsync(userId, order);
-    Console.WriteLine($"Published message {order.OrderId} for User {userId}");
-    await Task.Delay(100);
+    var userId = $"user_{userIndex}";
+    tasks.Add(Task.Run(async () =>
+    {
+        for (int i = 0; i < totalMessages; i++)
+        {
+            var order = GenerateOrderMessage(userId, i);
+            await publisher.PublishAsync(userId, order);
+            Console.WriteLine($"[User {userId}] Published message {order.OrderId}");
+            await Task.Delay(100);
+        }
+    }));
 }
+
+await Task.WhenAll(tasks);
 
 publisher.Dispose();
