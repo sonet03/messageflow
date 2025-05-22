@@ -60,7 +60,7 @@ namespace MessageFlow.Kafka
                     _processingStrategy = new BatchProcessingStrategy<TMessage>(
                         async messages =>
                         {
-                            var messageEnvelopes = messages.OrderBy(m => m.TopicPartitionOffset.Offset).ToList();
+                            var messageEnvelopes = messages.OrderBy(m => m.Payload).ToList();
                             await handle(messageEnvelopes.First().Payload);
                             await handle(messageEnvelopes.Last().Payload);
                         },
