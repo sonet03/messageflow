@@ -31,6 +31,8 @@ long processed = 0;
 long orders = 0;
 var firstTimestamp = DateTimeOffset.UtcNow;
 
+var strategy = Environment.GetEnvironmentVariable("PROCESSING_STRATEGY")?.ToUpperInvariant();
+
 listener.Subscribe(async message =>
 {
     await Task.Delay(75);
@@ -42,10 +44,9 @@ listener.Subscribe(async message =>
     {
         Interlocked.Increment(ref orders);
     }
-
-    if (orders != 0 && orders % 4 == 0)
+    
+    if (orders != 0 && orders % 4 == 0 || (orders == 1 && strategy == "BATCH"))
     {
-        var strategy = Environment.GetEnvironmentVariable("PROCESSING_STRATEGY")?.ToUpperInvariant();
         stopwatch.Stop();
         var totalTime = stopwatch.Elapsed;
         Console.WriteLine("--- DONE ---");
