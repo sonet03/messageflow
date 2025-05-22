@@ -31,6 +31,7 @@ services:
 
   consumer2:
     image: kafka-consumer
+    container_name: consumer2
     environment:
       - CONSUMER_ID=2
     networks:
