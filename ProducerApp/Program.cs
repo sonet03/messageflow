@@ -64,8 +64,11 @@ for (var userIndex = 0; userIndex < 16; userIndex++)
         {
             var order = GenerateOrderMessage(userId, i);
             await publisher.PublishAsync(userId, order);
-            Console.WriteLine($"[User {userId}] Published message {order.OrderId}");
-            await Task.Delay(50);
+
+            if (i % 100 == 0)
+            {
+                Console.WriteLine($"Published message {i} messages");
+            }
         }
     }));
 }

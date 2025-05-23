@@ -35,7 +35,7 @@ var strategy = Environment.GetEnvironmentVariable("PROCESSING_STRATEGY")?.ToUppe
 
 listener.Subscribe(async message =>
 {
-    await Task.Delay(75);
+    await Task.Delay(10);
     Console.WriteLine($"{DateTimeOffset.UtcNow:HH:mm:ss.fff} | {message.UserId} | {message.OrderId}");
 
     Interlocked.Increment(ref processed);
@@ -47,6 +47,7 @@ listener.Subscribe(async message =>
     
     if (orders != 0 && orders % 4 == 0 || (orders == 1 && strategy == "BATCH"))
     {
+        Interlocked.Exchange(ref orders, 0);
         stopwatch.Stop();
         var totalTime = stopwatch.Elapsed;
         Console.WriteLine("--- DONE ---");
