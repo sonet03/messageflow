@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Confluent.Kafka;
+﻿using Confluent.Kafka;
 using MessageFlow.Kafka;
 using MessageFlow.Kafka.Deserializers;
 using Microsoft.Extensions.Logging;
@@ -26,7 +25,6 @@ var listener = new KafkaMessageListener<OrderMessage>(config,
     "kafka-topic-test"
 );
 
-var stopwatch = Stopwatch.StartNew();
 long processed = 0;
 long orders = 0;
 var firstTimestamp = DateTimeOffset.UtcNow;
@@ -48,14 +46,12 @@ listener.Subscribe(async message =>
     if (orders != 0 && orders % 4 == 0 || (orders == 1 && strategy == "BATCH"))
     {
         Interlocked.Exchange(ref orders, 0);
-        stopwatch.Stop();
-        var totalTime = stopwatch.Elapsed;
+        var endTimestamp = DateTimeOffset.UtcNow;
         Console.WriteLine("--- DONE ---");
         Console.WriteLine($"Strategy: {strategy ?? "SEQUENTIAL"}");
         Console.WriteLine($"Start: {firstTimestamp:HH:mm:ss.fff}");
-        Console.WriteLine($"End:   {DateTimeOffset.UtcNow:HH:mm:ss.fff}");
-        Console.WriteLine($"Elapsed: {totalTime.TotalSeconds:F2} seconds");
-        Console.WriteLine($"Throughput: {processed / totalTime.TotalSeconds:F2} msg/sec");
+        Console.WriteLine($"End:   {endTimestamp:HH:mm:ss.fff}");
+        Console.WriteLine($"Processed: {processed} messages");
     }
 });
 
