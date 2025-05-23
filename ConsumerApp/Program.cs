@@ -51,7 +51,7 @@ listener.Subscribe(async message =>
         Console.WriteLine($"Strategy: {strategy ?? "SEQUENTIAL"}");
         Console.WriteLine($"Start: {firstTimestamp:HH:mm:ss.fff}");
         Console.WriteLine($"End:   {endTimestamp:HH:mm:ss.fff}");
-        Console.WriteLine($"Elapsed:   {elapsed:hh\\:mm\\:ss\\.fff}");
+        Console.WriteLine($"Elapsed:   {elapsed.TotalSeconds:F2} seconds");
         Console.WriteLine($"Throughput: {processed / elapsed.TotalSeconds:F2} msg/s");
     }
 });
