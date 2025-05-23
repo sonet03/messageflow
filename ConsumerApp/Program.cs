@@ -34,7 +34,6 @@ var strategy = Environment.GetEnvironmentVariable("PROCESSING_STRATEGY")?.ToUppe
 listener.Subscribe(async message =>
 {
     await Task.Delay(10);
-    Console.WriteLine($"{DateTimeOffset.UtcNow:HH:mm:ss.fff} | {message.UserId} | {message.OrderId}");
 
     Interlocked.Increment(ref processed);
     
@@ -51,7 +50,7 @@ listener.Subscribe(async message =>
         Console.WriteLine($"Strategy: {strategy ?? "SEQUENTIAL"}");
         Console.WriteLine($"Start: {firstTimestamp:HH:mm:ss.fff}");
         Console.WriteLine($"End:   {endTimestamp:HH:mm:ss.fff}");
-        Console.WriteLine($"Processed: {processed} messages");
+        Console.WriteLine($"Throughput: {processed / (endTimestamp - firstTimestamp).TotalSeconds:F2} msgs");
     }
 });
 
